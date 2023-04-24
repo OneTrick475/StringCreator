@@ -6,14 +6,15 @@ const unsigned maxChars = 16;
 class StringPiece {
 private:
 	char _data[maxChars];
-	int _start = 16;
+	int _start = 16; // we dont really need char* here, we can just use indexes
 	int _end = -1;
 
 	size_t getIndex(size_t index) const;
+	void checkDeleted() const;
 
 public:
 	StringPiece() = default;
-	explicit StringPiece(const char* str); // explicit to avoid implicit conversion from nullptr. this is needed for the remove method
+	StringPiece(const char* str); 
 
 	size_t getLen() const;
 	MyString getString() const;

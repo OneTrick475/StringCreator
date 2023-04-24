@@ -3,7 +3,15 @@
 #include <sstream>
 #pragma warning(disable : 4996)
 
+void StringPiece::checkDeleted() const {
+	if (isDeleted())
+		throw std::exception("The piece at this index is deleted. Add a new piece at this index first");
+}
+
+
 MyString StringPiece::getString() const {
+	checkDeleted();
+
 	char temp[17]{ '\0' };
 
 	size_t index = _start;
@@ -17,6 +25,8 @@ MyString StringPiece::getString() const {
 }
 
 void StringPiece::setData(const char* data) {
+	checkDeleted();
+
 	if (data == nullptr || strlen(data) > maxChars)
 		throw std::invalid_argument("invalid argument");
 
@@ -26,22 +36,30 @@ void StringPiece::setData(const char* data) {
 }
 
 void StringPiece::removeAtStart(size_t k) { //if k is more than the number of symbols, all symbols are removed.
+	checkDeleted();
+
 	k = k > getLen() ? getLen() : k;
 
 	_start += k;
 }
 
 void StringPiece::removeAtEnd(size_t k) { //if k is more than the number of symbols, all symbols are removed.
+	checkDeleted();
+
 	k = k > getLen() ? getLen() : k;
 
 	_end -= k;
 }
 
 size_t StringPiece::getIndex(size_t index) const {
+	checkDeleted();
+
 	return (_start + index) % 16;
 }
 
 void StringPiece::changeAt(size_t index, char ch) {
+	checkDeleted();
+
 	if (getIndex(index) >= getLen())
 		throw std::out_of_range("index out of range");
 
@@ -49,6 +67,8 @@ void StringPiece::changeAt(size_t index, char ch) {
 }
 
 StringPiece& operator<<(StringPiece& sp, const char* str) {
+	sp.checkDeleted();
+
 	if (str == nullptr || strlen(str) + sp.getLen() > maxChars)
 		throw std::invalid_argument("Invalid argument");
 
@@ -59,6 +79,8 @@ StringPiece& operator<<(StringPiece& sp, const char* str) {
 }
 
 StringPiece& operator<<(StringPiece& sp, int n) {
+	sp.checkDeleted();
+
 	std::stringstream ss;
 
 	ss << n;
@@ -71,6 +93,8 @@ StringPiece& operator<<(StringPiece& sp, int n) {
 }
 
 StringPiece& operator>>(const char* str, StringPiece& sp) {
+	sp.checkDeleted();
+
 	if (str == nullptr || strlen(str) + sp.getLen() > maxChars)
 		throw std::invalid_argument("Invalid argument");
 
@@ -81,6 +105,8 @@ StringPiece& operator>>(const char* str, StringPiece& sp) {
 }
 
 StringPiece& operator>>(int n, StringPiece& sp) {
+	sp.checkDeleted();
+
 	std::stringstream ss;
 
 	ss << n;
@@ -97,6 +123,8 @@ StringPiece::StringPiece(const char* str) {
 }
 
 size_t StringPiece::getLen() const {
+	checkDeleted();
+
 	return 16 - (_start - _end - 1);
 }
 
