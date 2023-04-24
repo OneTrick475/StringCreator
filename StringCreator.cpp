@@ -55,7 +55,7 @@ void StringCreator::addPiece() {
 	if (_length == _capacity)
 		resize();
 
-	_pieces[_length++] = StringPiece();
+	_length++;
 }
 
 
@@ -117,7 +117,7 @@ MyString StringCreator::getString() const { // not returning by & because the st
 	char* str = new char[len + 1]{'\0'};
 
 	for(size_t i = 0; i < _length; i++)
-		strcat(str, (_pieces[i].isDeleted() ? "                    " : _pieces[i].getData())); // sorry xd
+		strcat(str, (_pieces[i].isDeleted() ? "                    " : _pieces[i].getString().c_str())); // sorry xd
 	
 	MyString result = MyString(str);
 	delete[] str;

@@ -1,18 +1,22 @@
 #pragma once
+#include "MyString.h"
 
 const unsigned maxChars = 16;
 
 class StringPiece {
 private:
-	char _data[maxChars + 1]{ '\0' };
-	int _len = 0; // -1 indicated that the piece is deleted
+	char _data[maxChars];
+	int _start = 16;
+	int _end = -1;
+
+	size_t getIndex(size_t index) const;
 
 public:
 	StringPiece() = default;
 	explicit StringPiece(const char* str); // explicit to avoid implicit conversion from nullptr. this is needed for the remove method
 
-	int getLen() const;
-	const char* getData() const;
+	size_t getLen() const;
+	MyString getString() const;
 	void setData(const char* data);
 
 	void removeAtStart(size_t k);
@@ -21,7 +25,6 @@ public:
 	void changeAt(size_t index, char ch);
 
 	void deletePiece();
-
 	bool isDeleted() const;
 
 	friend StringPiece& operator<<(StringPiece& sp, const char* str);

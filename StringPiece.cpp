@@ -3,8 +3,17 @@
 #include <sstream>
 #pragma warning(disable : 4996)
 
-const char* StringPiece::getData() const {
-	return _data;
+MyString StringPiece::getString() const {
+	char temp[17]{ '\0' };
+
+	size_t index = _start;
+
+	for (size_t i = 0; i < getLen(); i++) {
+		if (index >= 16)
+			index -= 16;
+		temp[i] = _data[index++];
+	}
+	return MyString(temp);
 }
 
 void StringPiece::setData(const char* data) {
@@ -13,40 +22,38 @@ void StringPiece::setData(const char* data) {
 
 	strcpy(_data, data);
 
-	_len = strlen(data);
+	_end += strlen(data);
 }
 
 void StringPiece::removeAtStart(size_t k) { //if k is more than the number of symbols, all symbols are removed.
-	k = k > _len ? _len : k;
+	k = k > getLen() ? getLen() : k;
 
-	for (size_t i = 0; i <= _len - k; i++)
-		_data[i] = _data[i + k];
-
-	_len -= k;
+	_start += k;
 }
 
 void StringPiece::removeAtEnd(size_t k) { //if k is more than the number of symbols, all symbols are removed.
-	k = k > _len ? _len : k;
+	k = k > getLen() ? getLen() : k;
 
-	_len -= k;
+	_end -= k;
+}
 
-	_data[_len] = '\0';
+size_t StringPiece::getIndex(size_t index) const {
+	return (_start + index) % 16;
 }
 
 void StringPiece::changeAt(size_t index, char ch) {
-	if (index >= _len)
+	if (getIndex(index) >= getLen())
 		throw std::out_of_range("index out of range");
 
-	_data[index] = ch;
+	_data[getIndex(index)] = ch;
 }
 
 StringPiece& operator<<(StringPiece& sp, const char* str) {
-	if (str == nullptr || strlen(str) + sp._len > maxChars)
+	if (str == nullptr || strlen(str) + sp.getLen() > maxChars)
 		throw std::invalid_argument("Invalid argument");
 
-	strcat(sp._data, str);
-
-	sp._len += strlen(str);
+	for (size_t i = 0; i < strlen(str); i++)
+		sp._data[++sp._end] = str[i];
 
 	return sp;
 }
@@ -64,16 +71,11 @@ StringPiece& operator<<(StringPiece& sp, int n) {
 }
 
 StringPiece& operator>>(const char* str, StringPiece& sp) {
-	if (str == nullptr || strlen(str) + sp._len > maxChars)
+	if (str == nullptr || strlen(str) + sp.getLen() > maxChars)
 		throw std::invalid_argument("Invalid argument");
 
-	char temp[maxChars + 1];
-	strcpy(temp, str);
-	strcat(temp, sp._data);
-
-	strcpy(sp._data, temp);
-
-	sp._len += strlen(str);
+	for (int i = strlen(str) - 1; i >= 0; i--)
+		sp._data[--sp._start] = str[i];
 
 	return sp;
 }
@@ -94,15 +96,15 @@ StringPiece::StringPiece(const char* str) {
 	setData(str);
 }
 
-int StringPiece::getLen() const {
-	return _len;
+size_t StringPiece::getLen() const {
+	return 16 - (_start - _end - 1);
 }
 
 void StringPiece::deletePiece() {
-	_len = -1;
+	_start = _end = 17;
 }
 
 bool StringPiece::isDeleted() const {
-	return _len == -1;
+	return _start == 17;
 }
 
