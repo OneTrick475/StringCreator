@@ -9,6 +9,7 @@ private:
 	size_t _length = 0;
 
 	void copyFrom(const StringCreator& other);
+	void moveFrom(StringCreator& other);
 	void free();
 
 	void resize();
@@ -17,7 +18,9 @@ public:
 	StringCreator() = delete;
 	StringCreator(size_t capacity);
 	StringCreator(const StringCreator& other);
+	StringCreator(StringCreator&& other);
 	StringCreator& operator=(const StringCreator& other);
+	StringCreator& operator=(StringCreator&& other);
 	~StringCreator();
 
 	void addPiece();

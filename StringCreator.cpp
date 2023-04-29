@@ -5,10 +5,16 @@
 
 void StringCreator::resize() {
 	_capacity *= 2;
+	StringPiece* temp;
+	try {
+		temp = new StringPiece[_capacity];
+	}catch (const std::bad_alloc&) {
+		_capacity *= 2;
+		std::cout << "there was a problem while allocating memory\n";
+		throw;
+	}
 
-	StringPiece* temp = new StringPiece[_capacity];
-
-	for(size_t i = 0; i < _length; i++) {
+	for (size_t i = 0; i < _length; i++) {
 		temp[i] = _pieces[i];
 	}
 	free();
@@ -17,12 +23,31 @@ void StringCreator::resize() {
 }
 
 StringCreator::StringCreator(size_t capacity) : _capacity(capacity) {
-	_pieces = new StringPiece[_capacity];
+	try {
+		_pieces = new StringPiece[_capacity];
+	}catch (const std::bad_alloc&) {
+		std::cout << "there was a problem while allocating memory\n";
+		throw;
+	}
 }
 
 StringCreator::StringCreator(const StringCreator& other) {
 	copyFrom(other);
 }
+
+StringCreator::StringCreator(StringCreator&& other) {
+	moveFrom(other);
+}
+
+
+StringCreator& StringCreator::operator=(StringCreator&& other) {
+	if (this != &other) {
+		free();
+		moveFrom(other);
+	}
+	return *this;
+}
+
 
 StringCreator& StringCreator::operator=(const StringCreator& other) {
 	if(this != &other) {
@@ -43,13 +68,24 @@ void StringCreator::free() {
 
 void StringCreator::copyFrom(const StringCreator& other) {
 	_capacity = other._capacity;
-	_pieces = new StringPiece[_capacity];
-
+	try {
+		_pieces = new StringPiece[_capacity];
+	}catch (const std::bad_alloc&) {
+	std::cout << "there was a problem while allocating memory\n";
+	throw;
+	}
 	while (_length < other._length) {
 		_pieces[_length] = other._pieces[_length];
 		_length++;
 	}
 }
+
+void StringCreator::moveFrom(StringCreator& other) {
+	_capacity = other._capacity;
+	_pieces = other._pieces;
+	other._pieces = nullptr;
+}
+
 
 void StringCreator::addPiece() {
 	if (_length == _capacity)
@@ -63,8 +99,13 @@ void StringCreator::addPiece(const char* str) {
 	if (str == nullptr || strlen(str) > maxChars)
 		throw std::invalid_argument("Invalid argument");
 
-	if (_length == _capacity)
-		resize();
+	try {
+		if (_length == _capacity)
+			resize();
+	}catch (const std::bad_alloc&) {
+		std::cout << "there was a problem while allocating memory. the piece was not added but the object will remain usable\n";
+		throw;
+	}
 
 	_pieces[_length++] = StringPiece(str);
 }
@@ -114,10 +155,28 @@ unsigned StringCreator::getStrLen() const { // O(n), n = number of StringPieces
 
 MyString StringCreator::getString() const { // not returning by & because the string dies at the end of the function scope
 	size_t len = getStrLen();
-	char* str = new char[len + 1]{'\0'};
+	char* str;
+	size_t index = 0;
 
-	for(size_t i = 0; i < _length; i++)
-		strcat(str, (_pieces[i].isDeleted() ? "                    " : _pieces[i].getString().c_str())); // sorry xd
+	try {
+		str = new char[len + 1]{ '\0' };
+	}catch (const std::bad_alloc&) {
+		std::cout << "there was a problem while allocating memory\n";
+		throw;
+	}
+
+	for (size_t i = 0; i < _length; i++) {
+		if (_pieces[i].isDeleted()) {
+			strcat(str, "                    ");
+			index += 20;
+		}
+		else
+			for (size_t j = 0; j < _pieces[i].getLen(); j++) 
+				str[index++] = _pieces[i].getAt(j);
+	}
+	// a very clean but less optimal solution
+	//for (size_t i = 0; i < _length; i++) {
+	//strcat(str, (_pieces[i].isDeleted() ? "                    " : _pieces[i].getString().c_str())); }
 	
 	MyString result = MyString(str);
 	delete[] str;

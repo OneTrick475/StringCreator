@@ -24,6 +24,7 @@ public:
 	void removeAtEnd(size_t k);
 
 	void changeAt(size_t index, char ch);
+	char getAt(size_t index) const;
 
 	void deletePiece();
 	bool isDeleted() const;

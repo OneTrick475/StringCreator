@@ -60,10 +60,19 @@ size_t StringPiece::getIndex(size_t index) const {
 void StringPiece::changeAt(size_t index, char ch) {
 	checkDeleted();
 
-	if (getIndex(index) >= getLen())
+	if (index >= getLen())
 		throw std::out_of_range("index out of range");
 
 	_data[getIndex(index)] = ch;
+}
+
+char StringPiece::getAt(size_t index) const {
+	checkDeleted();
+
+	if (index >= getLen())
+		throw std::out_of_range("index out of range");
+
+	return _data[getIndex(index)];
 }
 
 StringPiece& operator<<(StringPiece& sp, const char* str) {
